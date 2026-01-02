@@ -59,7 +59,7 @@ async function run() {
     const ordersCollection = db.collection("orders");
 
     //product details
-    app.get("/products/:id", verifyUsers, async (req, res) => {
+    app.get("/products/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productsCollection.findOne(query);
