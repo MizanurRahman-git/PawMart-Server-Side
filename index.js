@@ -28,15 +28,15 @@ const client = new MongoClient(uri, {
 
 const verifyUsers = async (req, res, next) => {
   const authorization = req.headers.authorization;
-  
+
   if (!authorization) {
     res.status(401).send({
       message: "Unauthorized Access",
     });
   }
-  
+
   const token = authorization.split(" ")[1];
-  
+
   try {
     await admin.auth().verifyIdToken(token);
     next();
@@ -68,9 +68,19 @@ async function run() {
 
     //All Products
     app.get("/allProducts", async (req, res) => {
-      const cursor = productsCollection.find();
+      const { limit = 0, skip = 0, sort = "date", order = "desc" } = req.query;
+
+      const sortOption = {};
+      sortOption[sort || "date"] = order === "asc" ? 1 : -1;
+
+      const cursor = productsCollection
+        .find()
+        .sort(sortOption)
+        .limit(Number(limit))
+        .skip(Number(skip));
       const result = await cursor.toArray();
-      res.send(result);
+      const count = await productsCollection.countDocuments();
+      res.send({ result, total: count });
     });
 
     // display by category
@@ -85,7 +95,7 @@ async function run() {
 
     // 6 products showing on home page
     app.get("/products", async (req, res) => {
-      const cursor = productsCollection.find().sort({ date: -1 }).limit(6);
+      const cursor = productsCollection.find().sort({ date: -1 }).limit(8);
       const result = await cursor.toArray();
       res.send(result);
     });
